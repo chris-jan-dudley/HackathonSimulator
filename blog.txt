@@ -1,0 +1,28 @@
+Welcome to the first blog post for the "Hackathon Simulator 2016".
+
+This project is the second game I made using "phaser.io", a JavaScript package designed to make games, especially 2D platformers. The game is written in JavaScript, and run in browser.
+
+The game features the "Master Hacker", the blue coated gentleman in the fedora. His goal is to survive the hackathon, by gathering coffee and sandwiches, and impressing the fabulous AnvilHack volunteers with his awesome coding skills, by chucking GitHub at them. At the end, Master Hacker must face "The Boss"; a giant, fast food wielding Octocat.
+
+The game mechanics are very simple; it is a platformer with arcade style physics, allowing the player to jump between moving platforms. The player must dodge the other human sprites, and aim to collect the food and coffee before they do. The game features simple sound effects, generated using www.bfxr.net, as well as creative commons material. 
+
+The rough development plan for this game went through several phases:
+
+Minimial Viable Product; a basic sprite moving left and right, and jumping.
+Interaction with platforms and game world walls.
+Moving platforms which can collide with the player.
+Food and coffee sprites falling onto the game world, which are killed when the player's sprite collides.
+"Enemy" sprites with basic movement throughout the game world.
+A functioning hunger and "caffeination" bar, which reacts to sprite interactions.
+Firing capability for the player's sprite, shooting small sprites to kill the enemy sprites.
+A "final boss" sprite, which doesn't directly attach the player, but must be defeated to win the game. 
+Final steps were aesthetic improvements and sound implementation.
+This was all achieved in ~15 hours, and is the second game I've made in phaser. Future plans include taking the "Hackathon Simulator" to other game engines, eventually creating more sophisticated 3D games, ideally featuring "Master Hacker".
+
+I hope you find the game entertaining. My first phaser game can be found at https://github.com/cjdudley1/OllieSimulator2016 so hopefully you can see the improvement between the 2 games, in terms of complexity and vision.
+
+
+
+Thank you for your time, and I will leave you with this parting promise: 
+
+Master Hacker will be return, bigger and better!
