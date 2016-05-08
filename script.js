@@ -16,6 +16,11 @@ function preload() {
   game.load.bitmapFont('font', 'assets/fonts/bitmapFonts/carrier_command.png', 'assets/fonts/bitmapFonts/carrier_command.xml');
   game.load.image('octocat','assets/octocat.png');
   game.load.image('floor','assets/plat2.png');
+  game.load.audio('rivalD','assets/rivalD.wav');
+  game.load.audio('shoot','assets/shoot.wav');
+  game.load.audio('eat','assets/pacman.wav');
+  game.load.audio('slurp','assets/slurp.wav');
+  game.load.audio('end','assets/awesome.mp3');
 }
 var restarted = false;
 var player;
@@ -41,19 +46,24 @@ var apocalypse;
 var octocat;
 var octolife;
 var endgame;
+var rivalSound;
+var shoot;
+var eat;
+var slurp;
+var end;
+var music;
 
 function create() {
   worldCreate();
   playerGen();
   bulletGen();
   foodsgen();
+
   apocalypse = false;
   rivals = game.add.group()
   makeRival();
-  if (!restarted){
-  game.time.events.repeat(2000, 10000, createStuffs, this);
+  game.time.events.repeat(1500, 10000, createStuffs, this);
   game.time.events.repeat(4000,2000,makeRival,this);
-}
 
   cursors = game.input.keyboard.createCursorKeys();
   space = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
@@ -64,24 +74,16 @@ function create() {
   text.tint = 0xb30000;
   text.visible = false;
 
-  game.time.events.repeat(10000,1,bossBattle,this);
-  octolife = 10;
+  game.time.events.add(Phaser.Timer.SECOND * 20, bossBattle, this);
+  octolife = 20;
   endgame = false;
+
+audioSetUp();
+
+
+
 }
 
-function recreate(){
-  worldCreate();
-  playerGen();
-  foodsgen();
-  apocalypse = false;
-  bulletGen();
-  rivals = game.add.group()
-  makeRival();
-  text = game.add.bitmapText(110, 250, 'font','GAME OVER',75);
-  text.tint = 0xb30000;
-  text.visible = false;
-  game.time.events.repeat(10000,0,bossBattle,this);
-}
 
 function update() {
   physicsSetup()
@@ -101,6 +103,8 @@ function update() {
     player.destroy();
     text.visible = true;
   }
+
+
 
   if (endgame){
     rivals.visible = false;
@@ -137,6 +141,28 @@ function playerGen(){
   player.animations.add('right', [0,1], 10, true);
 }
 
+function audioSetUp(){
+  rivalSound = game.add.audio('rivalD');
+	rivalSound.volume = 0.1;
+	rivalSound.allowMultiple = true;
+
+  shoot = game.add.audio('shoot');
+  shoot.volume = 0.1;
+  shoot.allowMultiple = true;
+
+  eat = game.add.audio('eat');
+  eat.volume = 0.1;
+  eat.allowMultiple = true;
+
+  slurp = game.add.audio('slurp');
+  slurp.volume = 0.1;
+  slurp.allowMultiple = true;
+
+  end = game.add.audio('end');
+  end.volume = 0.4;
+  end.allowMultiple = true;
+}
+
 function bulletGen(){
   bullets = game.add.group();
   bullets.enableBody = true;
@@ -144,6 +170,7 @@ function bulletGen(){
   bullets.createMultiple(10, 'bullet');
   bullets.callAll('events.onOutOfBounds.add', 'events.onOutOfBounds', resetBullet, this);
   bullets.setAll('checkWorldBounds', true);
+
 }
 
 function foodsgen(){
@@ -158,13 +185,20 @@ function worldCreate(){
   if (!restarted){
   game.physics.startSystem(Phaser.Physics.ARCADE);
   bground = game.add.sprite(0, 0, 'bgrnd');}
+
   foodbar = game.add.sprite(180,50,'foodbar');
   border = game.add.sprite(180,50,'border');
   foodbar.scale.setTo(0.5,1);
+  var fblab = game.add.bitmapText(175, 15, 'font','HUNG-O-METER',18);
+  fblab.tint = 0x00cc00;
+  fblab.visible = true;
 
   cafbar = game.add.sprite(620,50,'cafbar');
   border = game.add.sprite(620,50,'border');
   cafbar.scale.setTo(0.5,1);
+  var cflab = game.add.bitmapText(615, 15, 'font','CAFFEINATION',18);
+  cflab.tint = 0xCC0000;
+  cflab.visible = true;
 
   platforms = game.add.group();
   platforms.enableBody = true;
@@ -178,7 +212,7 @@ function worldCreate(){
   ledge.body.immovable = true;
   ledge.body.velocity.x = 50;
 
-  var ledge = platforms.create(50, 250, 'ground');
+  var ledge = platforms.create(100, 250, 'ground');
   ledge.scale.setTo(0.7,0.9);
   ledge.body.immovable = true;
   ledge.body.velocity.x = -80;
@@ -198,14 +232,17 @@ function worldCreate(){
   wall.body.immovable = true;
   wall.scale.setTo(1,1.1);
 
+
 }
 
 function gotFood (player, foods) {
   foods.kill();
+  eat.play();
   var scale = foodbar.scale.x;
   if (scale < 0.6){
-    foodbar.scale.setTo(scale+0.01,1);
+    foodbar.scale.setTo(scale+0.05,1);
   }
+
 }
 
 function rGotFood(rivals, foods){
@@ -216,8 +253,9 @@ function gotCoffee (player, coffees) {
   coffees.kill();
   var scale = cafbar.scale.x;
   if (scale < 0.6){
-    cafbar.scale.setTo(scale+0.01,1);
+    cafbar.scale.setTo(scale+0.05,1);
   }
+  slurp.play();
 }
 
 function rGotCoffee(rivals, coffees){
@@ -236,6 +274,7 @@ function fireBullet () {
       bullet.body.bounce.x = 0.4;
       bullet.body.gravity.y = 500;
       bulletTime = game.time.now + 250;
+      shoot.play();
     }
   }
 }
@@ -265,6 +304,7 @@ function toggleDirR(rivals, wall){
 function killR(rivals, bullets){
   rivals.kill();
   bullets.kill();
+  rivalSound.play();
 }
 
 function makeRival(){
@@ -287,9 +327,17 @@ function ouch(player,rivals){
   foodbar.scale.setTo(scale2-0.005,1);
 }
 
+function playerOuch(player,octocats){
+  var scale = cafbar.scale.x;
+  cafbar.scale.setTo(scale-0.005,1);
+  var scale2 = foodbar.scale.x;
+  foodbar.scale.setTo(scale2-0.005,1);
+}
+
 function octOuch(octocat,bullets){
 if (octolife > 0){
   octolife --;
+  rivalSound.play();
 }else if (octolife === 0){
   octocat.visible = false;
   octocat.destroy();
@@ -297,6 +345,7 @@ if (octolife > 0){
   var text2 = game.add.bitmapText(90, 250, 'font','YOU WIN AALLLL\n  THE FOOD',55);
   text2.tint = 0x00cc00;
   text2.visible = true;
+  end.play();
 }
 bullets.kill();
 }
@@ -322,6 +371,7 @@ function physicsSetup(){
   game.physics.arcade.overlap(rivals, bullets, killR, null, this);
   game.physics.arcade.overlap(player, rivals, ouch, null, this);
   game.physics.arcade.overlap(bullets, octocat, octOuch, null, this);
+  game.physics.arcade.overlap(player, octocat, playerOuch, null, this);
 
   player.body.velocity.x = 0;
 
@@ -353,26 +403,17 @@ function bossBattle(){
   octocat = game.add.sprite(350,150,'octocat');
   octocat.scale.setTo(1.5,1.5);
   game.physics.arcade.enable(octocat);
-  octocat.visible = true;
   octocat.enableBody = true;
+  octocat.body.velocity.y = 20;
+  game.time.events.add(2000,octoTurnUp,this);
 }
 
-function pulse(){
-
+function octoTurnUp(){
+  octocat.body.velocity.y = 20;
+  game.time.events.add(2000,octoTurnDown,this);
 }
 
-function restart(){
-  player.destroy();
-  rivals.destroy();
-  foods.destroy();
-  coffees.destroy();
-  bullets.destroy();
-  text.destroy();
-  platforms.destroy();
-  walls.destroy();
-  foodbar.destroy();
-  cafbar.destroy();
-  octocat.destroy();
-  restarted = true;
-  create();
+function octoTurnDown(){
+  octocat.body.velocity.y = -20;
+  game.time.events.add(2000,octoTurnUp,this);
 }
