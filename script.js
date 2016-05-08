@@ -21,6 +21,8 @@ function preload() {
   game.load.audio('eat','assets/pacman.wav');
   game.load.audio('slurp','assets/slurp.wav');
   game.load.audio('end','assets/awesome.mp3');
+  game.load.audio('loser','assets/loser.wav');
+  //game.load.audio('music','assets/musak.wav');
 }
 var restarted = false;
 var player;
@@ -42,7 +44,6 @@ var cafbar;
 var restartKey;
 var rivals;
 var text;
-var apocalypse;
 var octocat;
 var octolife;
 var endgame;
@@ -52,6 +53,12 @@ var eat;
 var slurp;
 var end;
 var music;
+var loser;
+var dRight;
+var aLeft;
+var wUp;
+var sDown;
+
 
 function create() {
   worldCreate();
@@ -65,24 +72,23 @@ function create() {
 }
 
 function update() {
-  physicsSetup()
-  keySetup()
-  var scale1 = foodbar.scale.x;
-  if (scale1 > 0.01){
-    foodbar.scale.setTo(scale1-0.0003,1);
-  }else if (scale1 < 0.01){
-    player.destroy();
-    text.visible = true;
-  }
+  physicsSetup();
+  keySetup();
+  deathCond();
+  endCheck();
+}
 
-  var scale2 = cafbar.scale.x;
-  if (scale2 > 0.01){
-    cafbar.scale.setTo(scale2-0.0003,1);
-  }else if (scale2 < 0.02){
-    player.destroy();
-    text.visible = true;
-  }
+function cursorSet(){
+  cursors = game.input.keyboard.createCursorKeys();
+  space = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+  game.input.keyboard.addKeyCapture([ Phaser.Keyboard.LEFT, Phaser.Keyboard.RIGHT, Phaser.Keyboard.SPACEBAR ]);
+  restartKey = game.input.keyboard.addKey(Phaser.Keyboard.R);
+  wUp = game.input.keyboard.addKey(Phaser.Keyboard.W);
+  aLeft = game.input.keyboard.addKey(Phaser.Keyboard.A);
+  dRight = game.input.keyboard.addKey(Phaser.Keyboard.D);
+}
 
+function endCheck(){
   if (endgame){
     rivals.visible = false;
     var star = foods.create(500,250, 'star');
@@ -99,21 +105,34 @@ function update() {
 
     cafbar.scale.setTo(0.6,1);
     foodbar.scale.setTo(0.6,1);
-
   }
-
 }
 
-function cursorSet(){
-  cursors = game.input.keyboard.createCursorKeys();
-  space = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-  game.input.keyboard.addKeyCapture([ Phaser.Keyboard.LEFT, Phaser.Keyboard.RIGHT, Phaser.Keyboard.SPACEBAR ]);
-  restartKey = game.input.keyboard.addKey(Phaser.Keyboard.R);
+function deathCond(){
+  var losscount = 0;
+
+  var scale1 = foodbar.scale.x;
+  if (scale1 > 0.01){
+    foodbar.scale.setTo(scale1-0.0003,1);
+  }else if (scale1 < 0.01){
+    player.destroy();
+    octolife=100;
+    text.visible = true;
+    bullets.visible = false;
+  }
+
+  var scale2 = cafbar.scale.x;
+  if (scale2 > 0.01){
+    cafbar.scale.setTo(scale2-0.0003,1);
+  }else if (scale2 < 0.02){
+    player.destroy();
+    octolife=100;
+    text.visible = true;
+  }
 }
 
 function playerGen(){
   player = game.add.sprite(100, game.world.height - 200, 'dude');
-  player.revive();
   player.scale.setTo(1.6,1.5);
   game.physics.arcade.enable(player);
   player.body.bounce.y = 0.2;
@@ -124,8 +143,8 @@ function playerGen(){
 }
 
 function timerStart(){
-  game.time.events.add(20000, bossBattle, this);
-  game.time.events.repeat(1500, 10000, createStuffs, this);
+  game.time.events.add((0.5+Math.random())*20000, bossBattle, this);
+  game.time.events.repeat(1000, 10000, createStuffs, this);
   game.time.events.repeat(3000,2000,makeRival,this);
 }
 
@@ -149,6 +168,10 @@ function audioSetUp(){
   end = game.add.audio('end');
   end.volume = 0.4;
   end.allowMultiple = true;
+
+  loser = game.add.audio('loser');
+  loser.volume = 0.3;
+  loser.allowMultiple = true;
 }
 
 function bulletGen(){
@@ -223,7 +246,7 @@ function worldCreate(){
   text.tint = 0xb30000;
   text.visible = false;
 
-  octolife = 20;
+  octolife = 15;
   endgame = false;
 
   rivals = game.add.group()
@@ -320,7 +343,7 @@ function ouch(player,rivals){
   foodbar.scale.setTo(scale2-0.005,1);
 }
 
-function playerOuch(player,octocats){
+function playerOuch(player,octocat){
   var scale = cafbar.scale.x;
   cafbar.scale.setTo(scale-0.005,1);
   var scale2 = foodbar.scale.x;
@@ -371,24 +394,24 @@ function physicsSetup(){
 }
 
 function keySetup(){
-  if (cursors.left.isDown){
+  if (cursors.left.isDown || aLeft.isDown){
     player.body.velocity.x = -200;
     player.animations.play('left');
-  }else if (cursors.right.isDown){
+  }else if (cursors.right.isDown || dRight.isDown){
     player.body.velocity.x = 200;
     player.animations.play('right');
   }else{
     player.animations.stop();
     player.frame = 2;
   }
-  if (cursors.up.isDown && player.body.touching.down){
+  if (( wUp.isDown || cursors.up.isDown) && player.body.touching.down){
     player.body.velocity.y = -500;
   }
   if (space.isDown){
     fireBullet();
   }
   if (restartKey.isDown){
-    restart();
+    location.reload();
   }
 }
 
