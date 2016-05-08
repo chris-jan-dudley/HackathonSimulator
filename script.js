@@ -1,5 +1,7 @@
 var game = new Phaser.Game(1000, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
+
+
 function preload() {
 
   game.load.image('bgrnd', 'assets/brick.png');
@@ -21,8 +23,8 @@ function preload() {
   game.load.audio('eat','assets/pacman.wav');
   game.load.audio('slurp','assets/slurp.wav');
   game.load.audio('end','assets/awesome.mp3');
-  game.load.audio('loser','assets/loser.wav');
-  //game.load.audio('music','assets/musak.wav');
+  game.load.audio('loser','assets/octohelm.mp3');
+  game.load.audio('music','assets/musak.wav');
 }
 var restarted = false;
 var player;
@@ -58,9 +60,12 @@ var dRight;
 var aLeft;
 var wUp;
 var sDown;
-
+var welcome;
 
 function create() {
+  game.scale.pageAlignHorizontally = true;
+  game.scale.pageAlignVertically = true;
+  game.scale.refresh();
   worldCreate();
   playerGen();
   bulletGen();
@@ -150,28 +155,34 @@ function timerStart(){
 
 function audioSetUp(){
   rivalSound = game.add.audio('rivalD');
-  rivalSound.volume = 0.1;
+  rivalSound.volume = 0.2;
   rivalSound.allowMultiple = true;
 
   shoot = game.add.audio('shoot');
-  shoot.volume = 0.1;
+  shoot.volume = 0.2;
   shoot.allowMultiple = true;
 
   eat = game.add.audio('eat');
-  eat.volume = 0.1;
+  eat.volume = 0.2;
   eat.allowMultiple = true;
 
   slurp = game.add.audio('slurp');
-  slurp.volume = 0.1;
+  slurp.volume = 0.2;
   slurp.allowMultiple = true;
 
   end = game.add.audio('end');
-  end.volume = 0.4;
+  end.volume = 0.6;
   end.allowMultiple = true;
 
   loser = game.add.audio('loser');
   loser.volume = 0.3;
   loser.allowMultiple = true;
+
+  music = game.add.audio('music');
+  music.volume = 0.3;
+  music.allowMultiple = true;
+  music.loop = true;
+  music.play();
 }
 
 function bulletGen(){
@@ -246,7 +257,10 @@ function worldCreate(){
   text.tint = 0xb30000;
   text.visible = false;
 
-  octolife = 15;
+  welcome = game.add.bitmapText(55,550,'font','W, A, D or Arrow keys to move - space to shoot code\n\nR to restart - Keep fed, keep ceffeinated. Good Luck!',14);
+
+
+  octolife = 8;
   endgame = false;
 
   rivals = game.add.group()
@@ -359,9 +373,11 @@ function octOuch(octocat,bullets){
     octocat.visible = false;
     octocat.destroy();
     endgame = true;
-    var text2 = game.add.bitmapText(90, 250, 'font','YOU WIN AALLLL\n  THE FOOD',55);
+    var text2 = game.add.bitmapText(70, 250, 'font','YOU WIN AALLLL\n  THE FOOD',55);
     text2.tint = 0x00cc00;
     text2.visible = true;
+    music.stop();
+    loser.play();
     end.play();
   }
 }
