@@ -15,6 +15,7 @@ function preload() {
   game.load.image('other','assets/rival.png');
   game.load.bitmapFont('font', 'assets/fonts/bitmapFonts/carrier_command.png', 'assets/fonts/bitmapFonts/carrier_command.xml');
   game.load.image('octocat','assets/octocat.png');
+  game.load.image('floor','assets/plat2.png');
 }
 var restarted = false;
 var player;
@@ -63,7 +64,7 @@ function create() {
   text.tint = 0xb30000;
   text.visible = false;
 
-  game.time.events.repeat(1000,1,bossBattle,this);
+  game.time.events.repeat(10000,1,bossBattle,this);
   octolife = 10;
   endgame = false;
 }
@@ -106,14 +107,18 @@ function update() {
     var star = foods.create(500,250, 'star');
     star.body.gravity.y = 350;
     star.body.velocity.y = -500;
-    star.body.velocity.x = game.rnd.integerInRange(-1, 1) * Math.random() * 200;
+    star.body.velocity.x = game.rnd.integerInRange(-1, 1) * Math.random() * 100;
     star.body.bounce.y = 0.4 + Math.random() * 0.2;
 
     var coffee = coffees.create(500,250, 'coffee');
     coffee.body.gravity.y = 350;
     coffee.body.velocity.y = -100;
-    coffee.body.velocity.x = game.rnd.integerInRange(-1, 1) * Math.random() * 200;
+    coffee.body.velocity.x = game.rnd.integerInRange(-1, 1) * Math.random() * 100;
     coffee.body.bounce.y = 0.4 + Math.random() * 0.2;
+
+    cafbar.scale.setTo(0.6,1);
+    foodbar.scale.setTo(0.6,1);
+
   }
 
 }
@@ -164,22 +169,22 @@ function worldCreate(){
   platforms = game.add.group();
   platforms.enableBody = true;
 
-  var ground = platforms.create(0, game.world.height - 64, 'ground');
+  var ground = platforms.create(0, game.world.height - 64, 'floor');
   ground.scale.setTo(3, 2);
   ground.body.immovable = true;
 
   var ledge = platforms.create(400, 400, 'ground');
-  ledge.scale.setTo(0.7,1);
+  ledge.scale.setTo(0.7,0.9);
   ledge.body.immovable = true;
   ledge.body.velocity.x = 50;
 
   var ledge = platforms.create(50, 250, 'ground');
-  ledge.scale.setTo(0.7,1);
+  ledge.scale.setTo(0.7,0.9);
   ledge.body.immovable = true;
   ledge.body.velocity.x = -80;
 
   var ledge = platforms.create(500, 100, 'ground');
-  ledge.scale.setTo(0.7,1);
+  ledge.scale.setTo(0.7,0.9);
   ledge.body.immovable = true;
   ledge.body.velocity.x = 100;
 
@@ -226,7 +231,7 @@ function fireBullet () {
     if (bullet){
       bullet.reset(player.x + 6, player.y - 8);
       bullet.body.velocity.y = -200;
-      bullet.body.velocity.x = (player.body.velocity.x*2);
+      bullet.body.velocity.x = (player.body.velocity.x*2.5);
       bullet.body.bounce.y = 0.4;
       bullet.body.bounce.x = 0.4;
       bullet.body.gravity.y = 500;
@@ -289,6 +294,9 @@ if (octolife > 0){
   octocat.visible = false;
   octocat.destroy();
   endgame = true;
+  var text2 = game.add.bitmapText(90, 250, 'font','YOU WIN AALLLL\n  THE FOOD',55);
+  text2.tint = 0x00cc00;
+  text2.visible = true;
 }
 bullets.kill();
 }
