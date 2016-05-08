@@ -58,32 +58,11 @@ function create() {
   playerGen();
   bulletGen();
   foodsgen();
-
-  apocalypse = false;
-  rivals = game.add.group()
+  audioSetUp();
   makeRival();
-  game.time.events.repeat(1500, 10000, createStuffs, this);
-  game.time.events.repeat(4000,2000,makeRival,this);
-
-  cursors = game.input.keyboard.createCursorKeys();
-  space = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-  game.input.keyboard.addKeyCapture([ Phaser.Keyboard.LEFT, Phaser.Keyboard.RIGHT, Phaser.Keyboard.SPACEBAR ]);
-  restartKey = game.input.keyboard.addKey(Phaser.Keyboard.R);
-
-  text = game.add.bitmapText(110, 250, 'font','GAME OVER',75);
-  text.tint = 0xb30000;
-  text.visible = false;
-
-  game.time.events.add(Phaser.Timer.SECOND * 20, bossBattle, this);
-  octolife = 20;
-  endgame = false;
-
-audioSetUp();
-
-
-
+  timerStart();
+  cursorSet();
 }
-
 
 function update() {
   physicsSetup()
@@ -103,8 +82,6 @@ function update() {
     player.destroy();
     text.visible = true;
   }
-
-
 
   if (endgame){
     rivals.visible = false;
@@ -127,24 +104,35 @@ function update() {
 
 }
 
+function cursorSet(){
+  cursors = game.input.keyboard.createCursorKeys();
+  space = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+  game.input.keyboard.addKeyCapture([ Phaser.Keyboard.LEFT, Phaser.Keyboard.RIGHT, Phaser.Keyboard.SPACEBAR ]);
+  restartKey = game.input.keyboard.addKey(Phaser.Keyboard.R);
+}
+
 function playerGen(){
   player = game.add.sprite(100, game.world.height - 200, 'dude');
-  if (!restarted){
-  player.revive();}
+  player.revive();
   player.scale.setTo(1.6,1.5);
   game.physics.arcade.enable(player);
   player.body.bounce.y = 0.2;
-  player.body.gravity.y = 800;
+  player.body.gravity.y = 700;
   player.body.collideWorldBounds = true;
-
   player.animations.add('left', [3,4], 10, true);
   player.animations.add('right', [0,1], 10, true);
 }
 
+function timerStart(){
+  game.time.events.add(20000, bossBattle, this);
+  game.time.events.repeat(1500, 10000, createStuffs, this);
+  game.time.events.repeat(3000,2000,makeRival,this);
+}
+
 function audioSetUp(){
   rivalSound = game.add.audio('rivalD');
-	rivalSound.volume = 0.1;
-	rivalSound.allowMultiple = true;
+  rivalSound.volume = 0.1;
+  rivalSound.allowMultiple = true;
 
   shoot = game.add.audio('shoot');
   shoot.volume = 0.1;
@@ -182,9 +170,8 @@ function foodsgen(){
 }
 
 function worldCreate(){
-  if (!restarted){
   game.physics.startSystem(Phaser.Physics.ARCADE);
-  bground = game.add.sprite(0, 0, 'bgrnd');}
+  bground = game.add.sprite(0, 0, 'bgrnd');
 
   foodbar = game.add.sprite(180,50,'foodbar');
   border = game.add.sprite(180,50,'border');
@@ -232,7 +219,14 @@ function worldCreate(){
   wall.body.immovable = true;
   wall.scale.setTo(1,1.1);
 
+  text = game.add.bitmapText(110, 250, 'font','GAME OVER',75);
+  text.tint = 0xb30000;
+  text.visible = false;
 
+  octolife = 20;
+  endgame = false;
+
+  rivals = game.add.group()
 }
 
 function gotFood (player, foods) {
@@ -263,7 +257,6 @@ function rGotCoffee(rivals, coffees){
 }
 
 function fireBullet () {
-
   if (game.time.now > bulletTime){
     bullet = bullets.getFirstExists(false);
     if (bullet){
@@ -335,19 +328,19 @@ function playerOuch(player,octocats){
 }
 
 function octOuch(octocat,bullets){
-if (octolife > 0){
-  octolife --;
-  rivalSound.play();
-}else if (octolife === 0){
-  octocat.visible = false;
-  octocat.destroy();
-  endgame = true;
-  var text2 = game.add.bitmapText(90, 250, 'font','YOU WIN AALLLL\n  THE FOOD',55);
-  text2.tint = 0x00cc00;
-  text2.visible = true;
-  end.play();
-}
-bullets.kill();
+  bullets.kill();
+  if (octolife > 1){
+    octolife --;
+    rivalSound.play();
+  }else if (octolife === 1){
+    octocat.visible = false;
+    octocat.destroy();
+    endgame = true;
+    var text2 = game.add.bitmapText(90, 250, 'font','YOU WIN AALLLL\n  THE FOOD',55);
+    text2.tint = 0x00cc00;
+    text2.visible = true;
+    end.play();
+  }
 }
 
 function physicsSetup(){
@@ -400,12 +393,12 @@ function keySetup(){
 }
 
 function bossBattle(){
-  octocat = game.add.sprite(350,150,'octocat');
+  octocat = game.add.sprite(350,100,'octocat');
   octocat.scale.setTo(1.5,1.5);
   game.physics.arcade.enable(octocat);
   octocat.enableBody = true;
   octocat.body.velocity.y = 20;
-  game.time.events.add(2000,octoTurnUp,this);
+  game.time.events.add(1000,octoTurnUp,this);
 }
 
 function octoTurnUp(){
