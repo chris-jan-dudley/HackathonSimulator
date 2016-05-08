@@ -38,19 +38,18 @@ var rivals;
 var text;
 var apocalypse;
 var octocat;
+var octolife;
+var endgame;
 
 function create() {
   worldCreate();
   playerGen();
   bulletGen();
   foodsgen();
-
-apocalypse = false;
+  apocalypse = false;
   rivals = game.add.group()
-
   makeRival();
-
-if (!restarted){
+  if (!restarted){
   game.time.events.repeat(2000, 10000, createStuffs, this);
   game.time.events.repeat(4000,2000,makeRival,this);
 }
@@ -64,13 +63,9 @@ if (!restarted){
   text.tint = 0xb30000;
   text.visible = false;
 
-  game.time.events.repeat(1000,0,bossBattle,this);
-
-  octocat = game.add.sprite(350,150,'octocat');
-  octocat.scale.setTo(1.5,1.5);
-  octocat.enableBody = true;
-  octocat.physicsBodyType = Phaser.Physics.ARCADE;
-  octocat.visible = false;
+  game.time.events.repeat(1000,1,bossBattle,this);
+  octolife = 10;
+  endgame = false;
 }
 
 function recreate(){
@@ -104,6 +99,21 @@ function update() {
   }else if (scale2 < 0.02){
     player.destroy();
     text.visible = true;
+  }
+
+  if (endgame){
+    rivals.visible = false;
+    var star = foods.create(500,250, 'star');
+    star.body.gravity.y = 350;
+    star.body.velocity.y = -500;
+    star.body.velocity.x = game.rnd.integerInRange(-1, 1) * Math.random() * 200;
+    star.body.bounce.y = 0.4 + Math.random() * 0.2;
+
+    var coffee = coffees.create(500,250, 'coffee');
+    coffee.body.gravity.y = 350;
+    coffee.body.velocity.y = -100;
+    coffee.body.velocity.x = game.rnd.integerInRange(-1, 1) * Math.random() * 200;
+    coffee.body.bounce.y = 0.4 + Math.random() * 0.2;
   }
 
 }
@@ -272,6 +282,17 @@ function ouch(player,rivals){
   foodbar.scale.setTo(scale2-0.005,1);
 }
 
+function octOuch(octocat,bullets){
+if (octolife > 0){
+  octolife --;
+}else if (octolife === 0){
+  octocat.visible = false;
+  octocat.destroy();
+  endgame = true;
+}
+bullets.kill();
+}
+
 function physicsSetup(){
   game.physics.arcade.collide(player, platforms);
   game.physics.arcade.collide(player, walls);
@@ -292,6 +313,7 @@ function physicsSetup(){
   game.physics.arcade.overlap(rivals, walls, toggleDirR, null, this);
   game.physics.arcade.overlap(rivals, bullets, killR, null, this);
   game.physics.arcade.overlap(player, rivals, ouch, null, this);
+  game.physics.arcade.overlap(bullets, octocat, octOuch, null, this);
 
   player.body.velocity.x = 0;
 
@@ -320,7 +342,11 @@ function keySetup(){
 }
 
 function bossBattle(){
+  octocat = game.add.sprite(350,150,'octocat');
+  octocat.scale.setTo(1.5,1.5);
+  game.physics.arcade.enable(octocat);
   octocat.visible = true;
+  octocat.enableBody = true;
 }
 
 function pulse(){
@@ -338,7 +364,7 @@ function restart(){
   walls.destroy();
   foodbar.destroy();
   cafbar.destroy();
-  octocat.visible = false;
+  octocat.destroy();
   restarted = true;
   create();
 }
